@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@types/sha256-wasm": "^2.2.0",
+    "bswap": "^2.0.2",
     "dayjs": "^1.11.7",
     "markdown-table": "^3.0.3",
     "moment-timezone": "^0.5.40",

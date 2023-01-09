@@ -6,13 +6,14 @@ export class TestCase<I> {
 
 	constructor() {}
 
+	private results: Record<string, Record<string, number>> = {};
+		
 	public add<V>(testCase: TestCaseDescription<V, I>) {
 		this.testCases.push(testCase);
 		return this;
 	}
 
 	public execute(inputs: I[]) {
-		const results: Record<string, Record<string, number>> = {};
 		this.testCases.map((item) => {
 			inputs.forEach((input) => {
 				const benchmarkResults = benchmark({
@@ -23,16 +24,18 @@ export class TestCase<I> {
 					validate: item.validate,
 				});
 				
-				results[item.name] = results[item.name] || ({} as Record<string, number>);
+				this.results[item.name] = this.results[item.name] || ({} as Record<string, number>);
 
 				for(const [key, value] of Object.entries(benchmarkResults)) {
-					const prev = results[item.name][key] || 0;
-					results[item.name][key] = prev + value;
+					const prev = this.results[item.name][key] || 0;
+					this.results[item.name][key] = prev + value;
 				}
 			})
 		});
 
-		return results;
+		this.testCases = this.testCases.slice(this.testCases.length)
+
+		return this.results;
 	}
 
 	public report(input: I | I[], options?: {
