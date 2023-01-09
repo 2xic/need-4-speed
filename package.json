@@ -1,0 +1,25 @@
+{
+  "name": "optimization",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@types/sha256-wasm": "^2.2.0",
+    "dayjs": "^1.11.7",
+    "markdown-table": "^3.0.3",
+    "moment-timezone": "^0.5.40",
+    "sha256-wasm": "^2.2.2",
+    "timezone": "^1.0.23"
+  }
+}
