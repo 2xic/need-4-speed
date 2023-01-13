@@ -1,13 +1,18 @@
 import {markdownTable} from 'markdown-table';
-import {benchmark} from './benchmark.js';
+import {Benchmark} from './Benchmark.js';
+import { ConfigOptions } from './Config.js';
 
 export class TestCase<I> {
 	private testCases: TestCaseDescription<any, I>[] = [];
 
-	constructor() {}
+	private benchmark: Benchmark;
+
+	constructor(options?: Partial<ConfigOptions>) {
+		this.benchmark = new Benchmark(options);
+	}
 
 	private results: Record<string, Record<string, number>> = {};
-		
+
 	public add<V>(testCase: TestCaseDescription<V, I>) {
 		this.testCases.push(testCase);
 		return this;
@@ -16,14 +21,14 @@ export class TestCase<I> {
 	public execute(inputs: I[]) {
 		this.testCases.map((item) => {
 			inputs.forEach((input) => {
-				const benchmarkResults = benchmark({
+				const benchmarkResults = this.benchmark.benchmark({
 					name: item.name,
 					input,
 					getInstance: item.getInstance,
 					tests: item.tests,
 					validate: item.validate,
 				});
-				
+
 				this.results[item.name] = this.results[item.name] || ({} as Record<string, number>);
 
 				for(const [key, value] of Object.entries(benchmarkResults)) {
@@ -66,15 +71,18 @@ export class TestCase<I> {
 			})]);
 		})
 
-		if (!columns.includes('total')) {
-			columns.push('total');
+
+		if (2 < columns.length) {
+			if (!columns.includes('total')) {
+				columns.push('total');
+			}
+
+			rows = rows.map((item) => {
+				const sum_row = item.slice(1).reduce((a,b) => a + b);
+
+				return [...item, sum_row];
+			})
 		}
-
-		rows = rows.map((item) => {
-			const sum_row = item.slice(1).reduce((a,b) => a + b);
-
-			return [...item, sum_row];
-		})
 
 		if (options?.sorted) {
 			rows = rows.sort((row_a, row_b) => {
@@ -87,9 +95,8 @@ export class TestCase<I> {
 				if (index === 0) {
 					return item;
 				} else {
-					const [first, second] = item.toString().split(".");
 					//console.log(item.toString().split("."))
-					return first + "." + second.padEnd(22, "0");
+					return `${parseInt(item.toString())} ms`;
 				}
 			})
 		})
@@ -98,7 +105,9 @@ export class TestCase<I> {
     	[...columns],
     	...rows,
 	  ], {align: ['l', 'c', 'r']})
-		
+
+
+	  	console.log(`Results after ${this.benchmark.config.iterations} iterations`)
 		console.log(results);
 		console.log('')
 	}

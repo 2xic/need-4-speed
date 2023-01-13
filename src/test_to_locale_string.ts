@@ -1,67 +1,151 @@
-import {TestCase} from './helpers/TestCase.js';
-import {Input} from './helpers/Input.js';
-import {Capsule} from './helpers/Capsule.js';
-import crypto from 'crypto';
-import sha256 from 'sha256-wasm';
-// @ts-ignore
-import tz from 'timezone';
+import { TestCase } from './helpers/TestCase.js';
+import { Capsule } from './helpers/Capsule.js';
 import moment from 'moment-timezone';
+
 import dayjs from 'dayjs';
-var utc = require('dayjs/plugin/utc')
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
+// @ts-ignore
+import pkg from 'date-fns-tz';
+import { DateTime } from 'luxon';
+const { formatInTimeZone } = pkg;
+
+// @ts-ignore
+import spacetime from 'spacetime';
+
 dayjs.extend(utc)
-/*
-const date = new Date();
-console.log(date.toLocaleString('en-GB', { timeZone: 'Europe/Oslo' }))
-console.log(date.toLocaleString('en-GB', { timeZone: 'UTC' }))
-process.exit(0);
-const time = moment('09/01/2023, 16:34:34');
-console.log(
-	time.toDate().toLocaleString('en-GB', { timeZone: 'UTC' })
-);
+dayjs.extend(timezone)
 
-process.exit(0)
-*/
+const locale = 'en-US';
+const timeZone = 'Europe/Oslo';
 
-new TestCase<Date>()
-.add({
+const INPUT_DATE = new Date().toISOString();
+const EXPECTED_DATE = new Date().toLocaleString(locale, { timeZone })
+
+
+new TestCase<string>({
+	iterations: 10_000,
+})
+	.add({
 		name: 'Date.toLocaleString',
-		getInstance: (input) => new Date(input.toISOString()),
-		validate: (buf, input) => {
-			return buf.toLocaleString('en-GB', { timeZone: 'UTC' }) === input.toLocaleString('en-GB', { timeZone: 'UTC' });
-		},
-		tests: {
-			execution: (item) => item.toLocaleString('en-GB', { timeZone: 'UTC' })
-		}
-})
-.add({
-		name: 'Date.timezone',
-		getInstance: (input) => new Capsule<string>().set(input.toISOString()),
-		validate: (buf, input) => {
-			return buf.get().toString() === input.toLocaleString('en-GB', { timeZone: 'UTC' });
+		getInstance: (input) => new Capsule().set(INPUT_DATE),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
 		},
 		tests: {
 			execution: (item) => {
-				const utc = tz(item.get());
-				const converted = moment(new Date(tz(utc,'%c','en-GB','UTC')))
-				  .tz('UTC')
-				return item.set(converted.format('DD/MM/YYYY, HH:mm:ss'))
+				item.set(new Date(INPUT_DATE).toLocaleString(locale, { timeZone }))
 			}
 		}
-})
-.add({
-		name: 'Moment',
-		getInstance: (input) => new Capsule<moment.Moment>().set(moment(input)),
-		validate: (buf, input) => {
-			return false;
-//			return dayjs(buf.get().toDate()) === dayjs(input.toLocaleString('en-GB', { timeZone: 'UTC' })).utc();
+	})
+	.add({
+		name: 'Moment tz',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
 		},
 		tests: {
 			execution: (item) => {
-				dayjs(item.get().toDate()).toISOString()
-				item.set(item.get().tz('UTC'))
+				let converted = moment(
+					item.get()
+				).tz(timeZone)
+
+				return item.set(converted.format('M/D/YYYY, h:mm:ss A'))
 			}
 		}
-})
-.report(
-	new Date()
-)
+	})
+	.add({
+		name: 'Dayjs tz',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
+		},
+		tests: {
+			execution: (item) => {
+				const converted = dayjs(item.get())
+					.tz(timeZone)
+				return item.set(converted.format('M/D/YYYY, h:mm:ss A'))
+			}
+		}
+	})
+
+	.add({
+		name: 'Intl.DateTimeFormat',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
+		},
+		tests: {
+			execution: (item) => {
+				return item.set(new Intl.DateTimeFormat('en-US', {
+					timeZone,
+					year: 'numeric', month: 'numeric', day: 'numeric',
+					hour: 'numeric', minute: 'numeric', second: 'numeric',
+					hour12: true,
+				}).format(new Date(item.get())))
+			}
+		}
+	})
+
+	.add({
+		name: 'date-fns-tz',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
+		},
+		tests: {
+			execution: (item) => {
+				return item.set(formatInTimeZone(
+					(item.get()),
+					timeZone,
+					'M/d/yyyy, h:mm:ss a'
+				))
+			}
+		}
+	})
+
+	.add({
+		name: 'Luxon',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
+		},
+		tests: {
+			execution: (item) => {
+				return item.set(
+					DateTime.fromISO(item.get()).setZone(timeZone).toFormat(
+						'M/d/yyyy, h:mm:ss a'
+					)
+				)
+			}
+		}
+	})
+
+
+	.add({
+		name: 'spacetime',
+		getInstance: (input) => new Capsule<string>().set(input),
+		validate: (buf) => {
+			return buf.get() === EXPECTED_DATE;
+		},
+		tests: {
+			execution: (item) => {
+				return item.set(
+					spacetime(item.get()).goto(timeZone).unixFmt(
+						'M/d/yyyy, h:mm:ss a'
+					)
+				)
+			}
+		}
+	})
+	/*
+	.add({
+		name: 'Temporal',
+		https://github.com/tc39/proposal-temporal
+		// Not out yet.,
+	})
+	*/
+	.report(
+		INPUT_DATE,
+		{sorted: true}
+	)

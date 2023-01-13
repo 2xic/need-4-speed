@@ -1,5 +1,4 @@
 
-
 export class Capsule<T> {
 	private value: T | undefined;
 
@@ -14,11 +13,4 @@ export class Capsule<T> {
 		}
 		return this.value;
 	}
-
-	/*
-	public toString() {
-		return this.value.toString();
-	}
-	*/
 }
-
