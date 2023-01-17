@@ -1,0 +1,1 @@
+export declare function reverse(value: string): string;

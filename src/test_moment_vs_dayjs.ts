@@ -146,13 +146,6 @@ new TestCase<string>({
             }
         }
     })
-
-
-
-
-
-
-
     .add({
         name: 'dayjs.min',
         getInstance: (input) => new Capsule().set(INPUT_DATE),
@@ -183,8 +176,6 @@ new TestCase<string>({
             }
         }
     })
-
-
     .add({
         name: 'dayjs.max',
         getInstance: (input) => new Capsule().set(INPUT_DATE),

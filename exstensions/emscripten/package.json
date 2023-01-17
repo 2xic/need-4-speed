@@ -1,0 +1,16 @@
+{
+  "name": "ember-reverse",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./test.cjs",
+      "types": "./test.d.ts"
+    }
+  },
+  "scripts": {
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+  }
+}
