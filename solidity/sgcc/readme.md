@@ -1,0 +1,3 @@
+From https://github.com/Arachnid/sggc
+
+Running it did not work because of some truffle issues, might retry later...
