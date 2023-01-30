@@ -14,7 +14,7 @@ class TimeIt:
         self.start = time.time_ns()
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, *_args):
         self.entry[self.current_entry] += time.time_ns() - self.start
 
     def __str__(self) -> str:

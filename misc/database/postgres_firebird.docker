@@ -41,8 +41,10 @@ ENV FIREBIRD_PASSWORD=demo
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
-COPY insert_random_data.py ./insert_random_data.py
-COPY python/* ./python/
+#COPY insert_random_data.py ./insert_random_data.py
+COPY scripts/* ./scripts/
+COPY scripts/helpers/* ./scripts/helpers/
+COPY scripts/benchmark/* ./scripts/benchmark/
 
 ENTRYPOINT ["sh", "entrypoint.sh"]
 

@@ -6,7 +6,6 @@ import random
 def call_firebird_sql(sql, debug=False):
     if type(sql) == str:
         sql = sql.encode('utf-8')
-   # print(sql)
     FBPATH = os.getenv("FBPATH")
     out = (PIPE if debug else DEVNULL)
     isql = Popen([f'{FBPATH}/bin/isql', '-user', 'sysdba'], stderr=out, stdin=PIPE, stdout=out)
@@ -17,7 +16,7 @@ def call_firebird_sql(sql, debug=False):
     if debug:
         print("firebird", sql)
         print("firebird", output)
-    return output # "".join(list(list(filter(lambda x: x is not None, output))))
+    return output
 
 def call_postgres_sql(sql, debug=False):
     if type(sql) == str:

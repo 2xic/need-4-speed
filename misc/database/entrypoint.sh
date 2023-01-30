@@ -34,4 +34,4 @@ psql -U postgres  <<EOL
 SELECT * from ARKIV;
 EOL
 
-python3 insert_random_data.py
+python3 -m scripts.insert_random_data
