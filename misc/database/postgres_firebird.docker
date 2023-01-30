@@ -1,0 +1,48 @@
+from controlsoft/firebird
+
+RUN apt-get update -y
+# POSTGRES
+RUN apt-get install git postgresql -y
+RUN service postgresql start
+RUN sed -i 's/peer/trust/g' /etc/postgresql/11/main/pg_hba.conf
+RUN service postgresql restart
+
+# FIREBIRD
+RUN echo "\
+# Firebird generated password for user SYSDBA is:\n\
+#\n\
+ISC_USER=sysdba\n\
+ISC_PASSWORD=7d85568099\n\
+#\n\
+# Also set legacy variable though it can't be exported directly\n\
+#\n\
+ISC_PASSWD=7d85568099\n\
+#\n\
+#\n\
+# Your password can be changed to a more suitable one using\n\
+# SQL operator ALTER USER.\n\
+#\n\
+" > /opt/firebird/SYSDBA.password
+RUN cat /opt/firebird/SYSDBA.password
+
+ENV NODE_VERSION=16.13.0
+RUN apt install -y curl
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+ENV NVM_DIR=/root/.nvm
+RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
+RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
+ENV PATH="/root/.nvm/versions/node/v${NODE_VERSION}/bin/:${PATH}"
+
+RUN echo "\nWireCrypt = Enabled\n" >> ${FBPATH}/firebird.conf
+
+ENV FIREBIRD_PASSWORD=demo
+
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
+
+COPY insert_random_data.py ./insert_random_data.py
+COPY python/* ./python/
+
+ENTRYPOINT ["sh", "entrypoint.sh"]
+
