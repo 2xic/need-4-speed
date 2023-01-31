@@ -15,22 +15,7 @@ TODO:
 debug = False
 
 benchmark = Benchmark().execute()
-"""
-print(call_firebird_sql(
-    SqlBuilder().select(
-        table=benchmark.table.name
-    ),
-    debug=True
-))
-print(call_postgres_sql(
-    SqlBuilder(
-        is_firebird=False
-    ).select(
-        table=benchmark.table.name
-    ),
-    debug=True
-))
-"""
+
 print(call_firebird_sql(
     SqlBuilder().count(
         benchmark.table.name
@@ -49,3 +34,5 @@ print(call_postgres_sql(
 print("OK?")
 print(benchmark.postgres)
 print(benchmark.firebird)
+
+benchmark.plot()

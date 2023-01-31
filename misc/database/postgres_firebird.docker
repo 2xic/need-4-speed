@@ -41,9 +41,12 @@ ENV FIREBIRD_PASSWORD=demo
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x entrypoint.sh
 
+#RUN apt-get install python3-pip -y
+#RUN python3 -m pip install -U matplotlib
 #COPY insert_random_data.py ./insert_random_data.py
 COPY scripts/* ./scripts/
 COPY scripts/helpers/* ./scripts/helpers/
+COPY scripts/helpers/sql/* ./scripts/helpers/sql/
 COPY scripts/benchmark/* ./scripts/benchmark/
 
 ENTRYPOINT ["sh", "entrypoint.sh"]

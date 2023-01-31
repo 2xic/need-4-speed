@@ -1,6 +1,8 @@
 """
 TODO, this is complicated, fix it.
 """
+from .sql.Like import Like
+from .sql.Select import Select
 
 class SqlBuilder:
     def __init__(self, is_firebird=True) -> None:
@@ -8,13 +10,23 @@ class SqlBuilder:
         self.is_firebird = is_firebird
 
     def select(self, table="ARKIV", columns={}):
-        where_query = " AND ".join(
-            f"{key} in ({','.join(list(map(lambda x: f'{x}', value)))})" if type(value) == list else f"{key} = {value}"
-            for key, value in columns.items()
-        )
+        select = Select(
+            table
+        ).select()
+        for key, value in columns.items():
+            if type(value) in [str, int, Like]:
+                select = select.where_and(
+                    key, value
+                )
+            elif type(value) == list:
+                select = select.where_and(
+                    key, value
+                )
+            else:
+                raise Exception("Unknown")
+            
         statements = self._merge_db_specific([
-            f"SELECT * FROM {table}",
-            (f"WHERE {where_query}" if len(columns) else ""),
+            select.sql(),
             ";",
         ])
         return " ".join(statements).encode("utf-8")
@@ -25,18 +37,8 @@ class SqlBuilder:
         ])
         return " ".join(statements).encode("utf-8")
 
-    def insert_based_columns(self, table, columns, count=1):
-        names = [
-            f'{i.name}' for i in columns if not i.generated
-        ]
-        values = [
-            [
-                str(i.generate()) for i in columns if not i.generated
-            ]
-            for _ in range(count)
-        ]
-
-        return self.insert(names, values, table=table.name)
+   # def insert_based_columns(self, table, names, values, count=1):
+   #     return self.insert(names, values, table=table.name)
 
     def insert(self, columns, values, table="ARKIV"):
         if self.is_firebird:

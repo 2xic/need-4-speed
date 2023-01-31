@@ -6,7 +6,7 @@ class Column:
         self.type = type
         assert type in [str, int]
 
-        self.varchar_length = 2
+        self.varchar_length = 128
         self.generated = (self.name  == "id")
 
     def sql(self):
