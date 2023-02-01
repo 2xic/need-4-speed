@@ -9,22 +9,29 @@ class SqlBuilder:
         self.sql = []
         self.is_firebird = is_firebird
 
+    def run(self, raw_sql):
+        statements = self._merge_db_specific([
+            raw_sql,
+            ";",
+        ])
+        return " ".join(statements).encode("utf-8")
+
     def select(self, table="ARKIV", columns={}):
         select = Select(
             table
-        ).select()
-        for key, value in columns.items():
-            if type(value) in [str, int, Like]:
-                select = select.where_and(
-                    key, value
-                )
-            elif type(value) == list:
-                select = select.where_and(
-                    key, value
-                )
-            else:
-                raise Exception("Unknown")
-            
+        ).select().where(columns)
+#        for key, value in columns.items():
+ #           if type(value) in [str, int, Like]:
+  #              select = select.where_and(
+   #                 key, value
+    #            )
+     #       elif type(value) == list:
+      #          select = select.where_and(
+       #             key, value
+        #        )
+         #   else:
+          #      raise Exception("Unknown")
+
         statements = self._merge_db_specific([
             select.sql(),
             ";",
@@ -36,9 +43,6 @@ class SqlBuilder:
             f"SELECT count(*) FROM {table};"
         ])
         return " ".join(statements).encode("utf-8")
-
-   # def insert_based_columns(self, table, names, values, count=1):
-   #     return self.insert(names, values, table=table.name)
 
     def insert(self, columns, values, table="ARKIV"):
         if self.is_firebird:
@@ -84,5 +88,5 @@ class SqlBuilder:
             ("CONNECT 'test_database';" if self.is_firebird else "")
         ] + items + [
             ("commit;" if self.is_firebird else ""),
-            ("quit;" if self.is_firebird else ""),   
+            ("quit;" if self.is_firebird else ""),
         ]
