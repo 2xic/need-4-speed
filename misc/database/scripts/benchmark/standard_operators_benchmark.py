@@ -31,9 +31,9 @@ class Benchmark:
         self.purchase_table = Table(
             "purchases"
         ).add_column(
-            Column("item_id", int)
+            Column("item_id", int, create_index=False)
         ).add_column(
-            Column("purchase_id", int)
+            Column("purchase_id", int , generate=True)
         )
 
         self.rows = 3000 if not debug else 100
@@ -306,53 +306,54 @@ class Benchmark:
             )
 
     def plot(self):
+        batch_size = int(self.rows / self.steps)
         with open("/output/insert.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['insert'],
-                    "postgres": self.postgres.entry['insert'],
+                    "firebird": self.firebird.get_time_seconds('insert'),
+                    "postgres": self.postgres.get_time_seconds('insert'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'Insert time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'Insert time, {self.steps} batches with size {batch_size}',
                     "name": "insert.png"
                 }
             ))
         with open("/output/select_id.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['select_id'],
-                    "postgres": self.postgres.entry['select_id'],
+                    "firebird": self.firebird.get_time_seconds('select_id'),
+                    "postgres": self.postgres.get_time_seconds('select_id'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'select time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'select time based on id, {self.steps} batches with size {batch_size}',
                     "name": "select_where_id.png"
                 }
             ))
         with open("/output/select_like_text.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['select_like_text'],
-                    "postgres": self.postgres.entry['select_like_text'],
+                    "firebird": self.firebird.get_time_seconds('select_like_text'),
+                    "postgres": self.postgres.get_time_seconds('select_like_text'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'select time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'select where like text field, {self.steps} batches with size {batch_size}',
                     "name": "select_where_like_text.png"
                 }
             ))
         with open("/output/select_greater_than_less_than.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['select_greater_than_less_than'],
-                    "postgres": self.postgres.entry['select_greater_than_less_than'],
+                    "firebird": self.firebird.get_time_seconds('select_greater_than_less_than'),
+                    "postgres": self.postgres.get_time_seconds('select_greater_than_less_than'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'select time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'select where between range, {self.steps} batches with size {batch_size}',
                     "name": "select_greater_than_less_than.png"
                 }
             ))
         with open("/output/select_join.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['select_join'],
-                    "postgres": self.postgres.entry['select_join'],
+                    "firebird": self.firebird.get_time_seconds('select_join'),
+                    "postgres": self.postgres.get_time_seconds('select_join'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'select join time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'select join, {self.steps} batches with size {batch_size}',
                     "name": "select_join.png"
                 }
             ))
@@ -360,10 +361,10 @@ class Benchmark:
         with open("/output/select_left_join.json", "w") as file:
             file.write(json.dumps(
                 {
-                    "firebird": self.firebird.entry['select_left_join'],
-                    "postgres": self.postgres.entry['select_left_join'],
+                    "firebird": self.firebird.get_time_seconds('select_left_join'),
+                    "postgres": self.postgres.get_time_seconds('select_left_join'),
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
-                    "description": f'select left join time for {self.rows} with {self.steps} equal size batches',
+                    "description": f'select left join, {self.steps} batches with size {batch_size}',
                     "name": "select_left_join.png"
                 }
             ))

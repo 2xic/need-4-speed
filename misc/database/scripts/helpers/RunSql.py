@@ -12,7 +12,7 @@ def call_firebird_sql(sql, debug=False):
     output = isql.communicate(
         sql
     )
-    isql.wait(3)
+    isql.wait(1)
     if debug or isql.returncode != 0:
         print("firebird", sql)
         print("firebird", output)
@@ -29,7 +29,7 @@ def call_postgres_sql(sql, debug=False):
     output = psql.communicate(
         sql
     )
-    psql.wait(3)
+    psql.wait(1)
     if debug  or psql.returncode != 0:
         print("postgres ", sql)
         print("postgres ", output[0])

@@ -1,5 +1,4 @@
 
-
 class Table:
     def __init__(self, name) -> None:
         self.name = name
@@ -10,11 +9,19 @@ class Table:
         return self
 
     def sql(self, is_firebird):
-        return "\n".join([
+        items = [
             f"CREATE TABLE {self.name} (",
             ",\n".join(
                 i.sql(is_firebird) for i in self.columns
             ),
             ");"
-        ])
+        ]
+        if is_firebird:
+            items.append("commit;")
+        for i in self.columns:
+            if i.create_index:
+                items.append(
+                    i.index(self.name)
+                )
 
+        return "\n".join(items)

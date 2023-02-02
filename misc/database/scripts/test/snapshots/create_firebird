@@ -5,5 +5,6 @@ title VARCHAR(128),
 description VARCHAR(512),
 counter INTEGER
 );
+CREATE UNIQUE INDEX UNQ_COUNTRY_NAME ON item (id);
 commit;
 quit;

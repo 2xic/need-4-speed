@@ -9,7 +9,6 @@ def join(paths):
 
 for i in join([
     "output/insert.json",
-    "output/select.json",
     "output/select_like_text.json",
     "output/select_greater_than_less_than.json",
     "output/select_join.json",
@@ -20,6 +19,8 @@ for i in join([
         data = json.load(file)
         plt.plot(data['x'], data['firebird'], label='firebird', color="orange")
         plt.plot(data['x'], data['postgres'], label='postgres', color="blue")
+        plt.xlabel('Rows in table when running query')
+        plt.ylabel('Time to respond (in seconds)')
         plt.title(data['description'])
         plt.legend(loc="upper left")
         plt.savefig(

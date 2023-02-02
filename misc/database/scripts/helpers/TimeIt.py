@@ -6,6 +6,12 @@ class TimeIt:
         self.name = name
         self.entry = defaultdict(list)
 
+    def get_time_seconds(self, name):
+        return list(map(
+            lambda x: x / 1e9,
+            self.entry[name]
+        ))
+
     def __enter__(self):
         return self
 
@@ -20,7 +26,7 @@ class TimeIt:
     def __str__(self) -> str:
         return f"\n{self.name}\n" + \
                 "\n".join([
-                    f"{key} : {value} ns ({value / 1e6} ms)" for key, value in list(
+                    f"{key} : {value} ns ({value / 1e6} ms, {value / 1e9} sec)" for key, value in list(
                         map(lambda x: [x[0], sum(x[1])], self.entry.items())
                     )
                 ])+\

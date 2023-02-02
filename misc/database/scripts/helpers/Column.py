@@ -3,17 +3,23 @@ import random
 random.seed(10)
 
 class Column:
-    def __init__(self, name, type) -> None:
+    def __init__(self, name, type, generate=False, create_index=False) -> None:
         self.name = name
         self.type = type
         assert type in [str, int]
 
         self.varchar_length = 128
-        self.generated = (self.name  == "id")
+        self.generated = (self.name  == "id" or generate)
+        self.create_index = create_index
 
     def set_length(self, varchar_length):
         self.varchar_length = varchar_length
         return self
+
+    def index(self, table):
+        if self.create_index:
+            return f"CREATE UNIQUE INDEX UNQ_{self.name} ON {table} ({self.name});"
+        return ""
 
     def sql(self, is_firebird):
         if self.generated:
