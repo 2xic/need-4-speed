@@ -1,0 +1,3 @@
+SELECT count(*) from ARKIV
+ WHERE  title like '%test%' OR title like '%fest%' 
+;

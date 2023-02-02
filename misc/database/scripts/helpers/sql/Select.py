@@ -1,10 +1,11 @@
 from .Like import Like
 from .Between import Between
+from .batch_array import batch_array
 
 class Select:
     def __init__(self, table) -> None:
         self.table = table
-        self.columns = "*"
+        self.columns = "count(*)"
         self.joins = []
         self.where_str = ""
 
@@ -41,9 +42,12 @@ class Select:
                 column, value
             )
             if type(joined_list) == list:
-                joined = ",".join(joined_list)
+                items = map(lambda x:f" {column} in (" +",". join(x) + ")", batch_array(
+                    joined_list,
+                    1400
+                ))
                 statements.append(
-                    f" {column} in ({joined}) "
+                    "(" +" OR ".join(items) + ")"
                 )
             else:
                 statements.append(

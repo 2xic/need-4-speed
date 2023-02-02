@@ -2,13 +2,10 @@ print("v3")
 
 from .helpers.RunSql import call_firebird_sql, call_postgres_sql
 from .helpers.SqlBuilder import SqlBuilder
-from .benchmark.simple_table import Benchmark
+from .benchmark.standard_operators_benchmark import Benchmark
 
 """
 TODO:
-    - Create an abstract table class with column definition
-        -> Columns should have possibility to generate new values directly
-        ->
     - Instead of tracking is_firebird outside, add it in the call in call_firebird_sql
 """
 

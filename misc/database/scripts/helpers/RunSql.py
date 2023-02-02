@@ -13,23 +13,25 @@ def call_firebird_sql(sql, debug=False):
         sql
     )
     isql.wait(3)
-    if debug:
+    if debug or isql.returncode != 0:
         print("firebird", sql)
         print("firebird", output)
+
+    assert isql.returncode == 0
     return output
 
 def call_postgres_sql(sql, debug=False):
     if type(sql) == str:
         sql = sql.encode('utf-8')
 
-    #sql = sql.replace("CONNECT 'test_database';", "")
     out = (PIPE if debug else DEVNULL)
     psql = Popen([f'psql', '-U', 'postgres'], stdin=PIPE, stderr=out, stdout=out)
     output = psql.communicate(
         sql
     )
-    if debug:
-        print("postgres ", sql)
-        print("postgres ", output)
     psql.wait(3)
+    if debug  or psql.returncode != 0:
+        print("postgres ", sql)
+        print("postgres ", output[0])
+    assert psql.returncode == 0
     return output

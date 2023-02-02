@@ -36,27 +36,32 @@ class Benchmark:
             Column("purchase_id", int)
         )
 
-        self.rows = 100_000
-        self.steps = 1_00
+        self.rows = 3000 if not debug else 100
+        self.steps = 30 if not debug else 1
 
     def _setup(self):
-        print(call_firebird_sql(
-            SqlBuilder().create(self.items_table),
-            debug=True
-        ))
+        for table in [self.purchase_table, self.items_table]:
+            print(call_firebird_sql(
+                SqlBuilder().create(
+                    table,
+                ),
+                debug=True
+            ))
 
-        print(call_postgres_sql(
-            SqlBuilder(
-                is_firebird=False
-            ).create(self.items_table),
-            debug=True
-        ))
+            print(call_postgres_sql(
+                SqlBuilder(
+                    is_firebird=False
+                ).create(
+                    table,
+                ),
+                debug=True
+            ))
 
     def execute(self):
         self._setup()
         for i in range(0, self.steps):
             values = self.testing_insert_speed(
-                count_rows=(self.rows // (self.steps))
+                count_rows=(self.rows // (self.steps) + 1)
             )
             self.testing_random_select(
                 max_id=(self.rows * (i + 1))
@@ -65,6 +70,9 @@ class Benchmark:
                 strings=values
             )
             self.testing_greater_than_less_than(
+                max_id=(self.rows * (i + 1))
+            )
+            self.testing_left_join_statements(
                 max_id=(self.rows * (i + 1))
             )
             self.testing_join_statements(
@@ -99,29 +107,32 @@ class Benchmark:
                 ),
                 debug=debug
             )
-        values = []
+        string_values = []
         for rows in values:
-            for index, value in rows:
-                col = items_table.columns[index]
+            for index, value in enumerate(rows):
+                col = self.items_table.columns[index]
                 if col.type == str:
-                    values.append(
+                    string_values.append(
                         value
                     )
-        return values
+        return string_values
 
     def testing_random_select(self, max_id):
+        ids = [
+            random.randint(0, max_id)
+            for _ in range(self.rows)
+        ]
         with self.firebird('select_id'):
-            call_postgres_sql(
+            call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
+                    table=self.items_table.name,
                     columns={
-                        id:[
-                            random.randint(0, max_id)
-                            for _ in range(self.rows)
-                        ]
+                        "id":ids
                     }
-                )
+                ),
+                debug=debug
             )
 
         with self.postgres('select_id'):
@@ -129,28 +140,29 @@ class Benchmark:
                 SqlBuilder(
                     is_firebird=False
                 ).select(
+                    table=self.items_table.name,
                     columns={
-                        id:[
-                            random.randint(0, max_id)
-                            for _ in range(self.rows)
-                        ]
+                        "id":ids
                     }
-                )
+                ),
+                debug=debug
             )
 
     def testing_random_select_like(self, strings):
         with self.firebird('select_like_text'):
-            call_postgres_sql(
+            call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
+                    table=self.items_table.name,
                     columns={
                         "title":[
                             Like(i)
                             for i in strings
                         ]
                     }
-                )
+                ),
+                debug=debug
             )
 
         with self.postgres('select_like_text'):
@@ -158,33 +170,37 @@ class Benchmark:
                 SqlBuilder(
                     is_firebird=False
                 ).select(
+                    table=self.items_table.name,
                     columns={
                         "title":[
                             Like(i)
                             for i in strings
                         ]
                     }
-                )
+                ),
+                debug=debug
             )
 
 
     def testing_greater_than_less_than(self, max_id):
         between = [
             random.randint(0, max_id - 1)
-            for i in range(self.rows // self.steps)
+            for _ in range(self.rows // self.steps + 1)
         ]
         with self.firebird('select_greater_than_less_than'):
-            call_postgres_sql(
+            call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
+                    table=self.items_table.name,
                     columns={
                         "counter":[
                             Between(i, i + 100)
                             for i in between
                         ]
                     }
-                )
+                ),
+                debug=debug
             )
 
         with self.postgres('select_greater_than_less_than'):
@@ -192,21 +208,18 @@ class Benchmark:
                 SqlBuilder(
                     is_firebird=False
                 ).select(
+                    table=self.items_table.name,
                     columns={
                         "counter":[
                             Between(i, i + 100)
                             for i in between
                         ]
                     }
-                )
+                ),
+                debug=debug
             )
 
-    def testing_join_statements(self, max_id):
-        between = [
-            random.randint(0, max_id - 1)
-            for _ in range(self.rows // self.steps)
-        ]
-
+    def testing_left_join_statements(self, max_id):
         (purchases, names, values) = generate(
             self.purchase_table,
             self.purchase_table.columns,
@@ -231,8 +244,8 @@ class Benchmark:
             debug=debug
         )
 
-        with self.firebird('select_join'):
-            call_postgres_sql(
+        with self.firebird('select_left_join'):
+            call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).run(
@@ -241,26 +254,12 @@ class Benchmark:
                         purchases,
                         "id",
                         "item_id"
-                    ).where(
-                        [
-                            {
-                                "counter":[
-                                    Between(i, i + 100)
-                                    for i in between
-                                ]
-                            },
-                            {
-                                "purchase_id":[
-                                    Between(i, i + 100)
-                                    for i in between
-                                ]
-                            }
-                        ]
                     ).sql()
-                )
+                ),
+                debug=debug
             )
 
-        with self.postgres('select_join'):
+        with self.postgres('select_left_join'):
             call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
@@ -270,23 +269,40 @@ class Benchmark:
                         purchases,
                         "id",
                         "item_id"
-                     ).where(
-                        [
-                            {
-                                "counter":[
-                                    Between(i, i + 100)
-                                    for i in between
-                                ]
-                            },
-                            {
-                                "purchase_id":[
-                                    Between(i, i + 100)
-                                    for i in between
-                                ]
-                            }
-                        ]
+                     ).sql()
+                ),
+                debug=debug
+            )
+
+    def testing_join_statements(self, max_id):
+        with self.firebird('select_join'):
+            call_firebird_sql(
+                SqlBuilder(
+                    is_firebird=True
+                ).run(
+                    Select(self.items_table.name).
+                    left_join(
+                        self.purchase_table.name,
+                        "id",
+                        "item_id"
                     ).sql()
-                )
+                ),
+                debug=debug
+            )
+
+        with self.postgres('select_join'):
+            call_postgres_sql(
+                SqlBuilder(
+                    is_firebird=False
+                ).run(
+                    Select(self.items_table.name).
+                    left_join(
+                        self.purchase_table.name,
+                        "id",
+                        "item_id"
+                     ).sql()
+                ),
+                debug=debug
             )
 
     def plot(self):
@@ -338,5 +354,16 @@ class Benchmark:
                     "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
                     "description": f'select join time for {self.rows} with {self.steps} equal size batches',
                     "name": "select_join.png"
+                }
+            ))
+
+        with open("/output/select_left_join.json", "w") as file:
+            file.write(json.dumps(
+                {
+                    "firebird": self.firebird.entry['select_left_join'],
+                    "postgres": self.postgres.entry['select_left_join'],
+                    "x": list(map(lambda x: x * self.rows /self.steps,list(range(1, self.steps + 1)))),
+                    "description": f'select left join time for {self.rows} with {self.steps} equal size batches',
+                    "name": "select_left_join.png"
                 }
             ))

@@ -13,11 +13,13 @@ for i in join([
     "output/select_like_text.json",
     "output/select_greater_than_less_than.json",
     "output/select_join.json",
+    "output/select_left_join.json",
 ]):
+    print(i)
     with open(i, "r") as file:
         data = json.load(file)
-        plt.plot(data['x'], data['firebird'], label='firebird')
-        plt.plot(data['x'], data['postgres'], label='postgres')
+        plt.plot(data['x'], data['firebird'], label='firebird', color="orange")
+        plt.plot(data['x'], data['postgres'], label='postgres', color="blue")
         plt.title(data['description'])
         plt.legend(loc="upper left")
         plt.savefig(

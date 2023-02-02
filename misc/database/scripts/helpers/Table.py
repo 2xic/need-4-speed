@@ -9,13 +9,12 @@ class Table:
         self.columns.append(column)
         return self
 
-    def sql(self):
+    def sql(self, is_firebird):
         return "\n".join([
             f"CREATE TABLE {self.name} (",
-            ",".join(
-                i.sql() for i in self.columns
+            ",\n".join(
+                i.sql(is_firebird) for i in self.columns
             ),
             ");"
         ])
-    
-    
+

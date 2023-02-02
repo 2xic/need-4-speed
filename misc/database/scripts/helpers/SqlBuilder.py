@@ -14,35 +14,26 @@ class SqlBuilder:
             raw_sql,
             ";",
         ])
-        return " ".join(statements).encode("utf-8")
+        return "\n".join(statements).encode("utf-8")
 
     def select(self, table="ARKIV", columns={}):
         select = Select(
             table
-        ).select().where(columns)
-#        for key, value in columns.items():
- #           if type(value) in [str, int, Like]:
-  #              select = select.where_and(
-   #                 key, value
-    #            )
-     #       elif type(value) == list:
-      #          select = select.where_and(
-       #             key, value
-        #        )
-         #   else:
-          #      raise Exception("Unknown")
+        ).select([
+            "count(*)"
+        ]).where(columns)
 
         statements = self._merge_db_specific([
             select.sql(),
             ";",
         ])
-        return " ".join(statements).encode("utf-8")
+        return "\n".join(statements).encode("utf-8")
 
     def count(self, table):
         statements = self._merge_db_specific([
             f"SELECT count(*) FROM {table};"
         ])
-        return " ".join(statements).encode("utf-8")
+        return "\n".join(statements).encode("utf-8")
 
     def insert(self, columns, values, table="ARKIV"):
         if self.is_firebird:
@@ -51,12 +42,14 @@ class SqlBuilder:
                 "execute block as ",
                 "BEGIN",
                 "\n ".join(
-                   [ self._insert(table, columns, row)
+                   [ self._firebird_insert(table, columns, row)
                     for row in values]
                 ),
                 "\n",
                 "END#",
                 "SET TERM ;#",
+                "COMMIT;",
+                f"SELECT COUNT(*) from {table};",
             ])
         else:
             statements = [self._insert(table, columns, values)]
@@ -64,29 +57,49 @@ class SqlBuilder:
 
 
     def create(self, table):
-        return " ".join(self._merge_db_specific([
-            table.sql()
+        return "\n".join(self._merge_db_specific([
+            table.sql(
+                is_firebird=self.is_firebird
+            )
         ]))
 
-    def _insert(self, table, columns, values):
-    #    print(values)
+    def _firebird_insert(self, table, columns, values):
         return "\n".join([
             f"INSERT INTO {table} (",
                 ",".join(columns),
             ")",
             "VALUES",
-            "",
-                ",".join([
+            "(" + ",".join([
+                    row
+                    for row in values
+                ]) + ")"
+            ,
+            ";"
+        ])
+
+    def _insert(self, table, columns, values):
+        return "\n".join([
+            f"INSERT INTO {table} (",
+                ",".join(columns),
+            ")",
+            "VALUES",
+                ",\n".join([
                     "(" + ",".join(row) + ")"
                     for row in values
                 ]),
             ";"
         ])
 
-    def _merge_db_specific(self, items):
-        return [
-            ("CONNECT 'test_database';" if self.is_firebird else "")
-        ] + items + [
-            ("commit;" if self.is_firebird else ""),
-            ("quit;" if self.is_firebird else ""),
-        ]
+    def _merge_db_specific(self, items, is_commit=False):
+        combined = []
+        if self.is_firebird:
+            combined.append("CONNECT 'test_database';")
+
+        combined += items
+        if self.is_firebird:
+            combined += [
+                "commit;",
+                "quit;"
+            ]
+
+        return combined
