@@ -1,4 +1,4 @@
-.PHONY: memory
+.PHONY: memory disk
 
 memory:
 	# malloc_one_gig
@@ -13,3 +13,9 @@ grep_memory:
 	objdump -d bins/memory/allocate_small_segment_optimized | grep "brk" || echo "no match"
 	objdump -d bins/memory/allocate_small_segment | grep "brk"  || echo "no match"
 	
+disk:
+	# write_one_gig
+	gcc -O0 -I ./helpers/  disk/write_one_gig.c -o bins/disk/write_one_gig
+
+	# read_one_gig
+	gcc -O0 -I ./helpers/  disk/read_one_gig.c -o bins/disk/read_one_gig
