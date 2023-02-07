@@ -121,7 +121,7 @@ def test_postgres_select_like():
     ).decode('utf-8')
     assert Snapshot("select_like_postgres").create_or_save(sql) == sql
 
-def test_firebird_join():
+def test_firebird_left_join():
     between = [
         random.randint(0, 5 - 1)
         for _ in range(10)
@@ -151,9 +151,9 @@ def test_firebird_join():
             ]
         ).sql()
     ).decode('utf-8')
-    assert Snapshot("select_join_firebird").create_or_save(sql) == sql
+    assert Snapshot("select_left_join_firebird").create_or_save(sql) == sql
 
-def test_postgres_select_like():
+def test_postgres_select_left_join():
     between = [
         random.randint(0, 5 - 1)
         for _ in range(10)
@@ -183,6 +183,33 @@ def test_postgres_select_like():
             ]
         ).sql()
     ).decode('utf-8')
-    assert Snapshot("select_join_postgres").create_or_save(sql) == sql
+    assert Snapshot("select_left_join_postgres").create_or_save(sql) == sql
 
+
+
+def test_firebird_select_count_left_join():
+    sql = SqlBuilder(
+        is_firebird=False
+    ).run(
+        Select(table.name).
+        left_join(
+            purchase_table.name,
+            "id",
+            "item_id"
+        ).sql()
+    ).decode('utf-8')
+    assert Snapshot("select_count_left_join_firebird").create_or_save(sql) == sql
+
+def test_postgres_select_count_left_join():
+    sql = SqlBuilder(
+        is_firebird=False
+    ).run(
+        Select(table.name).
+        left_join(
+            purchase_table.name,
+            "id",
+            "item_id"
+        ).sql()
+    ).decode('utf-8')
+    assert Snapshot("select_count_left_join_postgres").create_or_save(sql) == sql
 

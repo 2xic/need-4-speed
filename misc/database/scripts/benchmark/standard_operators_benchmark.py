@@ -1,3 +1,4 @@
+from ..helpers.get_foreign_key_constraint import get_foreign_key_constraint
 from ..helpers.TimeIt import TimeIt
 from ..helpers.RunSql import call_firebird_sql, call_postgres_sql
 from ..helpers.SqlBuilder import SqlBuilder
@@ -11,7 +12,7 @@ from ..helpers.sql.Select import Select
 import random
 import json
 
-debug = False
+debug = True
 
 class Benchmark:
     def __init__(self) -> None:
@@ -36,14 +37,25 @@ class Benchmark:
             Column("purchase_id", int , generate=True)
         )
 
-        self.rows = 3000 if not debug else 100
-        self.steps = 30 if not debug else 1
+        # TODO: Figure out why problems appear after 2_000 rows
+        self.rows = 3000 if not debug else 2_000
+        self.steps = 30 if not debug else 10
 
     def _setup(self):
         for table in [self.purchase_table, self.items_table]:
             print(call_firebird_sql(
                 SqlBuilder().create(
                     table,
+                ),
+                debug=True
+            ))
+            print(call_firebird_sql(
+                get_foreign_key_constraint(
+                    self.purchase_table.name,
+                    "item_id",
+                    self.items_table.name,
+                    "id",
+                    is_firebird=True
                 ),
                 debug=True
             ))
@@ -78,6 +90,7 @@ class Benchmark:
             self.testing_join_statements(
                 max_id=(self.rows * (i + 1))
             )
+
         return self
 
     def testing_insert_speed(self, count_rows=1):
@@ -122,8 +135,9 @@ class Benchmark:
             random.randint(0, max_id)
             for _ in range(self.rows)
         ]
+        firebird_output = None
         with self.firebird('select_id'):
-            call_firebird_sql(
+            firebird_output = call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
@@ -134,9 +148,9 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        postgres_output = None
         with self.postgres('select_id'):
-            call_postgres_sql(
+            postgres_output = call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
                 ).select(
@@ -147,10 +161,12 @@ class Benchmark:
                 ),
                 debug=debug
             )
+        assert postgres_output == firebird_output, f"{firebird_output} vs {postgres_output}"
 
     def testing_random_select_like(self, strings):
+        firebird_output = None
         with self.firebird('select_like_text'):
-            call_firebird_sql(
+            firebird_output = call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
@@ -164,9 +180,9 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        postgres_output = None
         with self.postgres('select_like_text'):
-            call_postgres_sql(
+            postgres_output = call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
                 ).select(
@@ -180,15 +196,16 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        assert postgres_output == firebird_output, f"{firebird_output} vs {postgres_output}"
 
     def testing_greater_than_less_than(self, max_id):
         between = [
             random.randint(0, max_id - 1)
             for _ in range(self.rows // self.steps + 1)
         ]
+        firebird_output = None
         with self.firebird('select_greater_than_less_than'):
-            call_firebird_sql(
+            firebird_output = call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).select(
@@ -202,9 +219,9 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        postgres_output = None
         with self.postgres('select_greater_than_less_than'):
-            call_postgres_sql(
+            postgres_output = call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
                 ).select(
@@ -218,6 +235,7 @@ class Benchmark:
                 ),
                 debug=debug
             )
+        assert postgres_output == firebird_output, f"{firebird_output} vs {postgres_output}"
 
     def testing_left_join_statements(self, max_id):
         (purchases, names, values) = generate(
@@ -244,8 +262,9 @@ class Benchmark:
             debug=debug
         )
 
+        firebird_output = None
         with self.firebird('select_left_join'):
-            call_firebird_sql(
+            firebird_output = call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).run(
@@ -258,9 +277,9 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        postgres_output = None
         with self.postgres('select_left_join'):
-            call_postgres_sql(
+            postgres_output = call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
                 ).run(
@@ -273,10 +292,12 @@ class Benchmark:
                 ),
                 debug=debug
             )
+        assert postgres_output == firebird_output, f"{firebird_output} vs {postgres_output}"
 
     def testing_join_statements(self, max_id):
+        firebird_output = None
         with self.firebird('select_join'):
-            call_firebird_sql(
+            firebird_output = call_firebird_sql(
                 SqlBuilder(
                     is_firebird=True
                 ).run(
@@ -289,9 +310,9 @@ class Benchmark:
                 ),
                 debug=debug
             )
-
+        postgres_output = None
         with self.postgres('select_join'):
-            call_postgres_sql(
+            postgres_output = call_postgres_sql(
                 SqlBuilder(
                     is_firebird=False
                 ).run(
@@ -304,6 +325,7 @@ class Benchmark:
                 ),
                 debug=debug
             )
+        assert postgres_output == firebird_output, f"{firebird_output} vs {postgres_output}"
 
     def plot(self):
         batch_size = int(self.rows / self.steps)

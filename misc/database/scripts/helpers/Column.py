@@ -21,6 +21,14 @@ class Column:
             return f"CREATE UNIQUE INDEX UNQ_{self.name} ON {table} ({self.name});"
         return ""
 
+    def get_additional_sql(self, table_name, is_firebird):
+        """
+        This should be equivalent with what we are currently doing ...
+        """
+        if (self.name == "id" and is_firebird) and False:
+            return f"ALTER TABLE {table_name} ADD PRIMARY KEY ({self.name}); "
+        return None
+
     def sql(self, is_firebird):
         if self.generated:
             if is_firebird:

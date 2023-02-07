@@ -98,7 +98,7 @@ class SqlBuilder:
         combined += items
         if self.is_firebird:
             combined += [
-                "commit;",
+                ("commit;" if "insert" in "".join(combined).lower() else ""),
                 "quit;"
             ]
 

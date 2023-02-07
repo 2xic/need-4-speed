@@ -1,5 +1,6 @@
 
 - [x] Write some tiny unit tests
+- [x] Verify that the results of the queries are equal
 - [ ] Switch raw sql to query builder
 - [ ] Larger tables
   - [ ] Ideally one gb + size of tables
@@ -10,4 +11,5 @@
   - [ ] Procedures vs Functions speed ?
 
   - [x] Where with less / Greater than
-  - [ ] Effect with indexes
+  - [x] Effect with indexes
+    - [ ] Just need to add plot

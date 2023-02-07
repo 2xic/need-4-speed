@@ -1,0 +1,4 @@
+SELECT count(*) from item
+LEFT JOIN purchases on item.id = purchases.item_id
+
+;
