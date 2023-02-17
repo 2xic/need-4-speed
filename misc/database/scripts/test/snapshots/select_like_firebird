@@ -2,5 +2,5 @@ CONNECT 'test_database';
 SELECT count(*) from ARKIV
  WHERE  title like '%test%' OR title like '%fest%' 
 ;
-commit;
+
 quit;

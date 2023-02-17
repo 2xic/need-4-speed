@@ -27,3 +27,20 @@ for i in join([
             (join([f"plots/{data['name']}"]))[0]
         )
         plt.clf()
+
+for i in join([
+    "output/firebird_update_operator.json",
+]):
+    print(i)
+    with open(i, "r") as file:
+        data = json.load(file)
+        plt.plot(data['x'], data['operator_1'], label=data['operator_1_name'], color="orange")
+        plt.plot(data['x'], data['operator_2'], label=data['operator_2_name'], color="red")
+        plt.xlabel('Rows in table when running query')
+        plt.ylabel('Time to respond (in seconds)')
+        plt.title(data['description'])
+        plt.legend(loc="upper left")
+        plt.savefig(
+            (join([f"plots/{data['name']}"]))[0]
+        )
+        plt.clf()

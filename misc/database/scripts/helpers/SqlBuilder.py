@@ -55,7 +55,6 @@ class SqlBuilder:
             statements = [self._insert(table, columns, values)]
         return " ".join(statements).encode("utf-8")
 
-
     def create(self, table):
         return "\n".join(self._merge_db_specific([
             table.sql(

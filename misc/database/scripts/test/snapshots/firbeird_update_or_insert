@@ -1,0 +1,4 @@
+update or insert into item
+(id,title)values (4,'swag')
+RETURING (id)
+;

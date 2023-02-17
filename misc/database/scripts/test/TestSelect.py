@@ -7,6 +7,8 @@ from .Snapshot import Snapshot
 from ..helpers.SqlBuilder import SqlBuilder
 from ..helpers.sql.Between import Between
 from ..helpers.sql.Select import Select
+from ..helpers.sql.Update import Update
+from ..helpers.sql.UpdateOrInsert import UpdateOrInsert
 import random
 
 table = Table(
@@ -127,7 +129,7 @@ def test_firebird_left_join():
         for _ in range(10)
     ]
     sql = SqlBuilder(
-        is_firebird=False
+        is_firebird=True
     ).run(
         Select(table.name).
         left_join(
@@ -189,7 +191,7 @@ def test_postgres_select_left_join():
 
 def test_firebird_select_count_left_join():
     sql = SqlBuilder(
-        is_firebird=False
+        is_firebird=True
     ).run(
         Select(table.name).
         left_join(
@@ -213,3 +215,33 @@ def test_postgres_select_count_left_join():
     ).decode('utf-8')
     assert Snapshot("select_count_left_join_postgres").create_or_save(sql) == sql
 
+def test_firebird_update():
+    sql = SqlBuilder(
+        is_firebird=False
+    ).run(
+        Update(table.name).
+        set_value(
+            {
+                "title": "swag"
+            }
+        ).where({
+            "id": "4"
+        }).sql()
+    ).decode('utf-8')
+    assert Snapshot("update_set").create_or_save(sql) == sql
+
+def test_firebird_update_or_insert():
+    sql = SqlBuilder(
+        is_firebird=False
+    ).run(
+        UpdateOrInsert(table.name).
+        values(
+            {
+                "id": 4,
+                "title": "swag"
+            }
+        ).matching(
+            'id'
+        ).sql()
+    ).decode('utf-8')
+    assert Snapshot("firbeird_update_or_insert").create_or_save(sql) == sql

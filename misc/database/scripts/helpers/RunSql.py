@@ -4,6 +4,8 @@ from .clear_space import trim_space
 
 def call_firebird_sql(sql, debug=False):
     if type(sql) == str:
+#        if not "CONNECT 'test_database';" in sql:
+#            sql = "CONNECT 'test_database'; " + sql
         sql = sql.encode('utf-8')
     FBPATH = os.getenv("FBPATH")
     out = (PIPE if debug else DEVNULL)
@@ -23,7 +25,7 @@ def call_firebird_sql(sql, debug=False):
             print("firebird sql", sql)
             print("firebird", output)
 
-    if output[0] is None:
+    if output[0] is None and "update" not in sql.decode('utf-8').lower():
         print("NONE", sql)
         print(output)
 

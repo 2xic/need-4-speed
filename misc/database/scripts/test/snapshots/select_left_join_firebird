@@ -1,4 +1,7 @@
+CONNECT 'test_database';
 SELECT count(*) from item
 LEFT JOIN purchases on item.id = purchases.item_id
  WHERE  (counter > '1' AND counter < '101') OR (counter > '3' AND counter < '103') OR (counter > '2' AND counter < '102') OR (counter > '4' AND counter < '104') OR (counter > '0' AND counter < '100') OR (counter > '2' AND counter < '102') OR (counter > '0' AND counter < '100') OR (counter > '4' AND counter < '104') OR (counter > '1' AND counter < '101') OR (counter > '4' AND counter < '104')  OR  (purchase_id > '1' AND purchase_id < '101') OR (purchase_id > '3' AND purchase_id < '103') OR (purchase_id > '2' AND purchase_id < '102') OR (purchase_id > '4' AND purchase_id < '104') OR (purchase_id > '0' AND purchase_id < '100') OR (purchase_id > '2' AND purchase_id < '102') OR (purchase_id > '0' AND purchase_id < '100') OR (purchase_id > '4' AND purchase_id < '104') OR (purchase_id > '1' AND purchase_id < '101') OR (purchase_id > '4' AND purchase_id < '104') 
 ;
+
+quit;
